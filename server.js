@@ -6,6 +6,7 @@ const fccTesting  = require('./freeCodeCamp/fcctesting.js');
 const session     = require('express-session');
 const mongo       = require('mongodb').MongoClient;
 const passport    = require('passport');
+const githubStrategy = require('passport-github');
 
 const app = express();
 
@@ -30,6 +31,16 @@ mongo.connect(process.env.DATABASE, (err, db) => {
         }));
         app.use(passport.initialize());
         app.use(passport.session());
+      
+        passport.use(new githubStrategy({
+          clientID: process.env.GITHUB_CLIENT_ID,
+          clientSecret: process.env.GITHUB_CLIENT_SECRET,
+          callbackURL: __dirname + "/auth/github/callback"
+        },
+        function(accessToken, refreshToken, profile, cb) {
+          
+        }
+        ));
       
         function ensureAuthenticated(req, res, next) {
           if (req.isAuthenticated()) {
@@ -56,18 +67,10 @@ mongo.connect(process.env.DATABASE, (err, db) => {
         *  ADD YOUR CODE BELOW
         */
       
-        app.route('/auth/github').get(
-          (req, res) => { 
-            console.log('Preparing github auth');
-            passport.authenticate('github'); 
-          }
-        );
-      
+        app.route('/auth/github').get(passport.authenticate('github')); 
+        
         app.route('/auth/github/callback').get(
-          (req, res) => { 
-            console.log('Preparing github auth in CB');
-            passport.authenticate('github', { failureRedirect: '/' });
-          },
+          passport.authenticate('github', { failureRedirect: '/' }),
           (req, res) => { 
             console.log('Redirecting to profile from CB');
             res.redirect('/profile'); 
