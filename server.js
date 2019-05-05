@@ -35,10 +35,16 @@ mongo.connect(process.env.DATABASE, (err, db) => {
         passport.use(new githubStrategy({
           clientID: process.env.GITHUB_CLIENT_ID,
           clientSecret: process.env.GITHUB_CLIENT_SECRET,
-          callbackURL: __dirname + "/auth/github/callback"
+          callbackURL: "https://nmorin-social-auth.glitch.me" + "/auth/github/callback"
         },
         function(accessToken, refreshToken, profile, cb) {
-          
+          console.log("what the heck does this even do?");
+          db.collection('socialusers').findOne({ id: profile.id }, (err, user) => {
+            if(user) {
+              cb(err, user);
+            } else {
+              
+          });
         }
         ));
       
