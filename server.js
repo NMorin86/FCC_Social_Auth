@@ -6,7 +6,7 @@ const fccTesting  = require('./freeCodeCamp/fcctesting.js');
 const session     = require('express-session');
 const mongo       = require('mongodb').MongoClient;
 const passport    = require('passport');
-const githubStrategy = require('passport-github');
+const GitHubStrategy = require('passport-github');
 
 const app = express();
 
@@ -31,22 +31,6 @@ mongo.connect(process.env.DATABASE, (err, db) => {
         }));
         app.use(passport.initialize());
         app.use(passport.session());
-      
-        passport.use(new githubStrategy({
-          clientID: process.env.GITHUB_CLIENT_ID,
-          clientSecret: process.env.GITHUB_CLIENT_SECRET,
-          callbackURL: "https://nmorin-social-auth.glitch.me" + "/auth/github/callback"
-        },
-        function(accessToken, refreshToken, profile, cb) {
-          console.log("what the heck does this even do?");
-          db.collection('socialusers').findOne({ id: profile.id }, (err, user) => {
-            if(user) {
-              cb(err, user);
-            } else {
-              
-          });
-        }
-        ));
       
         function ensureAuthenticated(req, res, next) {
           if (req.isAuthenticated()) {
@@ -73,16 +57,26 @@ mongo.connect(process.env.DATABASE, (err, db) => {
         *  ADD YOUR CODE BELOW
         */
       
-        app.route('/auth/github').get(passport.authenticate('github')); 
-        
-        app.route('/auth/github/callback').get(
-          passport.authenticate('github', { failureRedirect: '/' }),
-          (req, res) => { 
-            console.log('Redirecting to profile from CB');
-            res.redirect('/profile'); 
+        passport.use(new GitHubStrategy({
+            clientID: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+            callbackURL: "https://nmorin-social-auth.glitch.me/auth/github/callback"
+          },
+          (accessToken, refreshToken, profile, cb) => {
+            console.log(profile);
           }
-        );
+        ));
+
       
+      
+      
+        app.route('/auth/github')
+          .get(passport.authenticate('github'));
+      
+        app.route('/auth/github/callback')
+          .get(passport.authenticate('github', { failureRedirect: '/' }), (req,res) => {
+              res.redirect('/profile');
+          });
       
         /*
         *  ADD YOUR CODE ABOVE
@@ -91,7 +85,6 @@ mongo.connect(process.env.DATABASE, (err, db) => {
       
         app.route('/')
           .get((req, res) => {
-            console.log('Serving index...');  
             res.render(process.cwd() + '/views/pug/index');
           });
 
