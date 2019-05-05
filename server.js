@@ -56,13 +56,23 @@ mongo.connect(process.env.DATABASE, (err, db) => {
         *  ADD YOUR CODE BELOW
         */
       
-        app.route('/auth/github').get((req, res) => {
-          passport.authenticate('github');
-        });
+        app.route('/auth/github').get(
+          (req, res) => { 
+            console.log('Preparing github auth');
+            passport.authenticate('github'); 
+          }
+        );
       
-        app.route('/auth/github/callback').get((req, res) => {
-          passport.authenticate('github',                                { failureRedirect: '/' });
-      
+        app.route('/auth/github/callback').get(
+          (req, res) => { 
+            console.log('Preparing github auth in CB');
+            passport.authenticate('github', { failureRedirect: '/' });
+          },
+          (req, res) => { 
+            console.log('Redirecting to profile from CB');
+            res.redirect('/profile'); 
+          }
+        );
       
       
         /*
@@ -72,6 +82,7 @@ mongo.connect(process.env.DATABASE, (err, db) => {
       
         app.route('/')
           .get((req, res) => {
+            console.log('Serving index...');  
             res.render(process.cwd() + '/views/pug/index');
           });
 
